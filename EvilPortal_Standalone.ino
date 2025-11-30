@@ -360,7 +360,7 @@ void setup() {
     Serial.println();
     Serial.println("╔══════════════════════════════════════╗");
     Serial.println("║   ESP32-S3 Captive Portal v1.0       ║");
-    Serial.println("║   github.com/[your-username]/repo    ║");
+    Serial.println("║   github.com/roozea/esp32-captive-portal ║");
     Serial.println("╚══════════════════════════════════════╝");
     Serial.println();
     
