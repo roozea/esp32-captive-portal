@@ -1,0 +1,28 @@
+# Arduino IDE
+*.elf
+*.bin
+*.map
+build/
+
+# macOS
+.DS_Store
+._*
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# IDE configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Compiled files
+*.o
+*.a
+*.so
+
+# Backup files
+*~
+*.bak
