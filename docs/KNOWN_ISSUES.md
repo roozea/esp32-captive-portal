@@ -1,20 +1,71 @@
 # Known Issues & Workarounds
 
-## 1. ESP32 Arduino Core Version Compatibility
+## Version 1.1 Specific Issues
 
-### Problem
+### SPIFFS Mount Failure on First Boot
 
-ESP32 Arduino Core version 3.x introduced breaking changes that cause compilation errors with AsyncTCP and ESPAsyncWebServer libraries.
+**Problem:** First boot after flashing may show `[!] SPIFFS mount failed`.
 
-### Error Example
+**Solution:** This is normal on first flash. The firmware automatically formats SPIFFS on first boot (`SPIFFS.begin(true)`). If the problem persists:
 
+1. In Arduino IDE, use: Tools > ESP32 Sketch Data Upload
+2. Or manually format via serial: The firmware handles this automatically
+
+### Admin Panel Shows "No credentials captured" After Reboot
+
+**Problem:** Previously captured credentials don't appear after device restart.
+
+**Possible causes:**
+1. SPIFFS wasn't properly initialized
+2. Flash corruption
+3. Wrong partition scheme selected
+
+**Solution:**
+1. Verify partition scheme has SPIFFS: Tools > Partition Scheme > "Default 4MB with spiffs"
+2. Check serial output for SPIFFS errors on boot
+3. Try reflashing with "Erase All Flash Before Sketch Upload" enabled
+
+### API Returns 401 Unauthorized
+
+**Problem:** API calls return authentication errors even with correct credentials.
+
+**Solution:**
+1. Use HTTP Basic Auth header, not form data
+2. Example: `curl -u admin:admin http://4.3.2.1/api/v1/status`
+3. In browser, you'll get a login popup - enter credentials there
+4. Check if you changed the admin credentials and forgot them
+
+**Recovery if locked out:** Reflash the firmware to reset to defaults.
+
+### JSON Export Contains Escaped Characters
+
+**Problem:** Exported JSON shows `\n` or `\"` in fields.
+
+**Explanation:** This is correct behavior. Special characters are escaped per JSON specification. Any JSON parser will handle this correctly.
+
+### Memory Issues with Many Credentials
+
+**Problem:** Device becomes slow or crashes with many stored credentials.
+
+**Solution:** The firmware limits storage to 100 credentials (FIFO). If you're experiencing issues:
+1. Export and clear logs regularly
+2. Check free memory in dashboard
+3. Reboot device periodically during long engagements
+
+---
+
+## General Issues (All Versions)
+
+### 1. ESP32 Arduino Core Version Compatibility
+
+**Problem:** ESP32 Arduino Core version 3.x introduced breaking changes.
+
+**Error Example:**
 ```
 error: 'struct ip_event_ap_staipassigned_t' has no member named 'ip'
 ```
 
-### Solution
-
-Use ESP32 Arduino Core version **2.0.x** (specifically 2.0.17 is well-tested).
+**Solution:** Use ESP32 Arduino Core version **2.0.x** (specifically 2.0.17 is well-tested).
 
 In Arduino IDE:
 1. Tools > Board > Boards Manager
@@ -22,168 +73,75 @@ In Arduino IDE:
 3. Select version 2.0.17
 4. Click Install
 
-### Why This Happens
-
-Espressif changed some internal structures in version 3.x. The async libraries haven't been fully updated to match.
-
 ---
 
-## 2. USB-CDC Breaks After WiFi.softAPConfig()
+### 2. USB-CDC Breaks After WiFi.softAPConfig()
 
-### Problem
+**Problem:** On ESP32-S3 with native USB-CDC, calling `WiFi.softAPConfig()` with any custom IP causes serial to die.
 
-On ESP32-S3 boards using native USB-CDC for serial communication (like the Electronic Cats WiFi Dev Board), calling `WiFi.softAPConfig()` with any IP address other than the default `192.168.4.1` causes the serial connection to die.
+**Symptoms:**
+- Serial output stops after WiFi configuration
+- WiFi AP works correctly
+- LED indicators work correctly
+- Device functions normally except for serial
 
-### Symptoms
-
-- Serial output stops immediately after `WiFi.softAPConfig()`
-- The WiFi AP starts and works correctly
-- Serial never recovers, even after WiFi is working
-- Unplugging and re-plugging USB doesn't help (need to reflash or reset)
-
-### Affected Hardware
-
-- ESP32-S3 boards with native USB (no external UART chip)
+**Affected Hardware:**
+- ESP32-S3 boards with native USB
 - Electronic Cats WiFi Dev Board
-- Most ESP32-S3-DevKitC boards
-- Any ESP32-S3 using "USB CDC On Boot: Enabled"
+- ESP32-S3-DevKitC boards
 
-### Not Affected
+**Why We Accept This:** The IP 4.3.2.1 is necessary for Samsung auto-popup. Since credentials are now stored in SPIFFS and viewable via admin panel, serial output isn't critical for operation.
 
-- ESP32 (original, non-S3) - uses external UART chip
-- ESP32-S2 - different USB implementation
-- ESP32-S3 with external USB-UART adapter (CP2102, CH340, etc.)
-
-### Technical Explanation
-
-The ESP32-S3's native USB-CDC shares some internal resources with the TCP/IP stack. When `WiFi.softAPConfig()` reconfigures the network stack for a custom IP, it appears to disrupt the USB-CDC driver.
-
-This is likely due to:
-- Shared DMA buffers between USB and WiFi subsystems
-- Internal resource conflicts during TCP/IP stack reconfiguration
-- A bug in the ESP-IDF USB-CDC implementation for S3
-
-We've reported this issue to Espressif: [Link to issue when created]
-
-### Workarounds
-
-**Option 1: Don't need serial during operation (Recommended for standalone use)**
-
-The firmware works perfectly - you just can't see serial output after boot. Credentials are still captured, LEDs still work, everything functions except serial monitoring.
-
-For pentesting scenarios, this is usually fine since you're not watching serial output in the field anyway.
-
-**Option 2: Use default IP (Sacrifices Samsung auto-popup)**
-
-```cpp
-// Don't call WiFi.softAPConfig() at all
-WiFi.softAP("FakeNetwork", "");  // Uses 192.168.4.1 automatically
-```
-
-This keeps serial working but Samsung phones won't auto-popup the captive portal (users have to manually tap "Sign in to network").
-
-**Option 3: External UART adapter**
-
-Use a USB-UART adapter (CP2102, CH340, FTDI) connected to GPIO pins instead of native USB:
-
-```cpp
-// Use Serial1 on custom pins
-HardwareSerial FlipperSerial(1);
-
-void setup() {
-    FlipperSerial.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN);
-    // ... rest of setup
-}
-```
-
-Connect the UART adapter to available GPIO pins. This completely bypasses the USB-CDC issue.
-
-**Option 4: Two-stage boot (Advanced)**
-
-1. Boot with default IP, establish serial communication
-2. Send a command to switch to custom IP
-3. Accept that serial will die after the switch
-
-This is useful if you need to configure the portal before deployment.
-
-### Tested IP Addresses
-
-| IP Address | Serial Works? | Samsung Auto-Popup? |
-|------------|---------------|---------------------|
-| 192.168.4.1 (default) | ✅ Yes | ❌ No |
-| 192.168.1.1 | ❌ No | ❌ No |
-| 10.0.0.1 | ❌ No | ❌ No |
-| 4.3.2.1 | ❌ No | ✅ Yes |
-| 8.8.8.8 | ❌ No | ✅ Yes |
-| 1.1.1.1 | ❌ No | ✅ Yes |
-
-Any custom IP breaks serial, regardless of whether it's public or private.
+**Workarounds:**
+1. **Recommended:** Use admin panel at `http://4.3.2.1/admin` to view credentials
+2. **Alternative:** Use external UART adapter on GPIO pins
+3. **Alternative:** Use default IP 192.168.4.1 (breaks Samsung auto-popup)
 
 ---
 
-## 3. Samsung Captive Portal Detection
+### 3. Samsung Captive Portal Detection
 
-### Problem
+**Problem:** Samsung phones require "public-looking" IP addresses for automatic popup.
 
-Samsung phones have stricter captive portal detection than other devices. They specifically check if the gateway IP is a "public" IP address. Private IPs (192.168.x.x, 10.x.x.x, 172.16.x.x) don't trigger the automatic popup.
+**Solution:** Use IP `4.3.2.1` (already configured in v1.1).
 
-### Solution
-
-Use IP address `4.3.2.1` - it's a Class A address that's not actually assigned to anyone on the internet, so it's safe to use locally while still triggering Samsung's detection.
-
-```cpp
-IPAddress apIP(4, 3, 2, 1);
-WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-```
-
-### Conflict with USB-CDC
-
-This solution conflicts with Issue #2 above. See that section for workarounds.
-
-### Alternative: Manual Connection
-
-If you use the default IP, Samsung users can still access the portal - they just need to:
-1. Connect to the WiFi
-2. Wait for "Sign in to network" notification
-3. Tap the notification
-
-It's not automatic, but it works.
+This IP:
+- Triggers Samsung's captive portal detection
+- Works with all other devices too
+- Is not routable on the internet (safe to use locally)
 
 ---
 
-## 4. Multiple ESP32 Packages Installed
+### 4. Multiple ESP32 Packages Installed
 
-### Problem
+**Problem:** Having both "Arduino ESP32 Boards" and "esp32 by Espressif Systems" causes conflicts.
 
-If you have both "Arduino ESP32 Boards by Arduino" and "esp32 by Espressif Systems" installed, you'll get weird compilation errors and unpredictable behavior.
-
-### Solution
-
-Only keep **one** ESP32 package installed. We recommend "esp32 by Espressif Systems" as it's the official one from Espressif.
-
-To check:
-1. Tools > Board > Boards Manager
-2. Search "esp32"
-3. If you see two packages installed, uninstall "Arduino ESP32 Boards"
+**Solution:** Only keep "esp32 by Espressif Systems" installed.
 
 ---
 
-## 5. AsyncTCP Library Conflicts
+### 5. AsyncTCP Library Conflicts
 
-### Problem
+**Problem:** Multiple versions of AsyncTCP exist, some incompatible.
 
-There are multiple versions of AsyncTCP floating around. Some don't work with newer ESP32 cores.
-
-### Solution
-
-Use the mathieucarbou fork, which is actively maintained:
+**Solution:** Use the mathieucarbou fork:
 
 ```bash
 cd ~/Documents/Arduino/libraries
-rm -rf AsyncTCP  # Remove old version if present
+rm -rf AsyncTCP ESPAsyncWebServer
 git clone https://github.com/mathieucarbou/AsyncTCP
 git clone https://github.com/mathieucarbou/ESPAsyncWebServer
 ```
+
+---
+
+### 6. ArduinoJson Version Issues (v1.1+)
+
+**Problem:** Very old versions of ArduinoJson use different API.
+
+**Solution:** Use ArduinoJson v7.x (latest). Install via Library Manager.
+
+The v1.1 firmware uses `JsonDocument` which requires ArduinoJson 7.x. If you have 6.x, the code will still work but you may see deprecation warnings.
 
 ---
 
@@ -191,10 +149,31 @@ git clone https://github.com/mathieucarbou/ESPAsyncWebServer
 
 Found something not listed here? Please open an issue with:
 
-1. Your board model
-2. ESP32 Core version
-3. Arduino IDE version
-4. The error message or unexpected behavior
-5. Minimal code to reproduce the problem
+1. Firmware version (check serial output or `/api/v1/status`)
+2. Your board model
+3. ESP32 Core version
+4. ArduinoJson version
+5. Arduino IDE version
+6. The error message or unexpected behavior
+7. Steps to reproduce
 
 The more details, the faster we can help!
+
+---
+
+## FAQ
+
+**Q: Can I use this without the Electronic Cats board?**
+A: Yes! Any ESP32-S3 works. Just adjust the LED pin definitions or set them to -1.
+
+**Q: Why not use ESP32 (non-S3)?**
+A: You can! The USB-CDC issue doesn't affect original ESP32 since it uses external UART. However, the S3 has more RAM which helps with the web server.
+
+**Q: Can I increase the 100 credential limit?**
+A: Yes, change `MAX_CREDENTIALS` in the code. Be mindful of SPIFFS space - each credential uses ~200-300 bytes.
+
+**Q: How do I completely reset the device?**
+A: Flash with "Erase All Flash Before Sketch Upload" enabled, or use esptool: `esptool.py erase_flash`
+
+**Q: The timestamps show 1970 dates. Why?**
+A: Without internet access, the ESP32 has no way to know the real time. Timestamps are relative to boot time. Consider the sequence/ID for ordering.
