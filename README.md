@@ -39,8 +39,8 @@ Perfect for the Electronic Cats WiFi Dev Board, but works on any ESP32-S3.
 
 | Method | Link |
 |--------|------|
-| 🌐 **Web Flasher** | [Launch Web Flasher](https://YOUR_USERNAME.github.io/esp32-captive-portal/webflasher/) |
-| 📦 **Pre-built Binary** | [GitHub Releases](https://github.com/YOUR_USERNAME/esp32-captive-portal/releases) |
+| 🌐 **Web Flasher** | [Launch Web Flasher](https://roozea.github.io/esp32-captive-portal/) |
+| 📦 **Pre-built Binary** | [GitHub Releases](https://github.com/roozea/esp32-captive-portal/releases) |
 | 💻 **Source Code** | Clone this repo |
 
 ---
@@ -62,7 +62,7 @@ Perfect for the Electronic Cats WiFi Dev Board, but works on any ESP32-S3.
 
 Flash directly from your browser - no software needed:
 
-**🌐 [Launch Web Flasher](https://roozea.github.io/esp32-captive-portal/webflasher/)**
+**🌐 [Launch Web Flasher](https://roozea.github.io/esp32-captive-portal/)**
 
 Requirements:
 - Chrome or Edge browser (desktop)
