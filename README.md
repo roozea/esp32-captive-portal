@@ -26,11 +26,22 @@ Perfect for the Electronic Cats WiFi Dev Board, but works on any ESP32-S3.
 
 ## 🆕 What's New in v1.2
 
+- **🌐 Web Flasher** - Flash from browser, no Arduino IDE needed!
 - **🆘 Factory Reset** - Access `/factory-reset` if you get locked out
 - **📱 Responsive Design** - Admin panel works great on mobile
 - **🔧 Improved Auth Flow** - No more double login prompts
 - **🚪 Better Logout** - Clear instructions when changing passwords
 - **🐛 Bug Fixes** - Fixed credential save/load issues
+
+---
+
+## 📥 Downloads
+
+| Method | Link |
+|--------|------|
+| 🌐 **Web Flasher** | [Launch Web Flasher](https://YOUR_USERNAME.github.io/esp32-captive-portal/webflasher/) |
+| 📦 **Pre-built Binary** | [GitHub Releases](https://github.com/YOUR_USERNAME/esp32-captive-portal/releases) |
+| 💻 **Source Code** | Clone this repo |
 
 ---
 
@@ -47,13 +58,26 @@ Perfect for the Electronic Cats WiFi Dev Board, but works on any ESP32-S3.
 
 ## ⚡ Quick Start
 
-### Requirements
+### Option 1: Web Flasher (Easiest!)
+
+Flash directly from your browser - no software needed:
+
+**🌐 [Launch Web Flasher](https://YOUR_USERNAME.github.io/esp32-captive-portal/webflasher/)**
+
+Requirements:
+- Chrome or Edge browser (desktop)
+- USB data cable
+- ESP32-S3 board
+
+### Option 2: Arduino IDE
+
+#### Requirements
 
 - ESP32-S3 board (tested on Electronic Cats WiFi Dev Board)
 - Arduino IDE 2.x
 - ESP32 Arduino Core **2.0.x** (⚠️ NOT 3.x)
 
-### Installation
+#### Installation
 
 ```bash
 # 1. Install required libraries

@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2024-12-02
 
 ### Added
+- **Web Flasher** - Flash firmware directly from browser using ESP Web Tools
 - **Factory Reset endpoint** (`/factory-reset`) - Reset credentials without reflashing
 - **Responsive design** - Admin panel works great on mobile devices
 - **Debug logging** - Detailed serial output for troubleshooting
 - **Health check endpoint** (`/ping`) - Quick connectivity test
+- **GitHub Actions** - Automated builds and GitHub Pages deployment
+- **Merged binary** - Single file for easy flashing
 
 ### Changed
 - Improved logout flow with clear instructions
