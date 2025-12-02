@@ -62,7 +62,7 @@ Perfect for the Electronic Cats WiFi Dev Board, but works on any ESP32-S3.
 
 Flash directly from your browser - no software needed:
 
-**🌐 [Launch Web Flasher](https://YOUR_USERNAME.github.io/esp32-captive-portal/webflasher/)**
+**🌐 [Launch Web Flasher](https://roozea.github.io/esp32-captive-portal/webflasher/)**
 
 Requirements:
 - Chrome or Edge browser (desktop)
