@@ -1,15 +1,43 @@
 # Known Issues & Workarounds
 
+## Version 1.2 Specific Issues
+
+### Can't Login After Changing Password
+
+**Problem:** After changing admin credentials, can't login with new or old password.
+
+**Solution:**
+1. Close **ALL** browser tabs completely
+2. Open a new tab
+3. Go to `http://4.3.2.1/admin`
+4. Enter your NEW credentials
+
+**If still locked out:** Go to `http://4.3.2.1/factory-reset` to reset to `admin/admin`.
+
+### Mobile Data Conflicts
+
+**Problem:** On mobile, going to `4.3.2.1` uses cellular data instead of WiFi.
+
+**Solution:** Use domain names instead of IP:
+- `http://portal.local/admin`
+- `http://setup.wifi/admin`
+- `http://login.portal/admin`
+
+Any domain works - the ESP32 DNS redirects everything to itself.
+
+---
+
 ## Version 1.1 Specific Issues
 
 ### SPIFFS Mount Failure on First Boot
 
 **Problem:** First boot after flashing may show `[!] SPIFFS mount failed`.
 
-**Solution:** This is normal on first flash. The firmware automatically formats SPIFFS on first boot (`SPIFFS.begin(true)`). If the problem persists:
+**Solution:** This is normal on first flash. The firmware automatically formats SPIFFS. If the problem persists:
 
-1. In Arduino IDE, use: Tools > ESP32 Sketch Data Upload
-2. Or manually format via serial: The firmware handles this automatically
+1. Tools → Partition Scheme → `Default 4MB with spiffs`
+2. Tools → Erase All Flash Before Sketch Upload → `Enabled`
+3. Upload again
 
 ### Admin Panel Shows "No credentials captured" After Reboot
 
@@ -163,6 +191,9 @@ The more details, the faster we can help!
 
 ## FAQ
 
+**Q: I'm locked out! How do I reset credentials?**
+A: Go to `http://4.3.2.1/factory-reset` - no authentication needed. This resets to `admin/admin`.
+
 **Q: Can I use this without the Electronic Cats board?**
 A: Yes! Any ESP32-S3 works. Just adjust the LED pin definitions or set them to -1.
 
@@ -173,7 +204,7 @@ A: You can! The USB-CDC issue doesn't affect original ESP32 since it uses extern
 A: Yes, change `MAX_CREDENTIALS` in the code. Be mindful of SPIFFS space - each credential uses ~200-300 bytes.
 
 **Q: How do I completely reset the device?**
-A: Flash with "Erase All Flash Before Sketch Upload" enabled, or use esptool: `esptool.py erase_flash`
+A: Option 1: Go to `/factory-reset`. Option 2: Flash with "Erase All Flash Before Sketch Upload" enabled.
 
 **Q: The timestamps show 1970 dates. Why?**
 A: Without internet access, the ESP32 has no way to know the real time. Timestamps are relative to boot time. Consider the sequence/ID for ordering.

@@ -1,28 +1,40 @@
-# 🎭 ESP32 Captive Portal Standalone v1.1
+# 🎭 ESP32 Captive Portal Standalone
 
-**A standalone Evil Portal for ESP32-S3** — now with persistent storage, admin panel, and REST API.
+**A standalone Evil Portal for ESP32-S3** — with persistent storage, admin panel, and REST API.
 
 Perfect for the Electronic Cats WiFi Dev Board, but works on any ESP32-S3.
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-ESP32--S3-blue)
-![Version](https://img.shields.io/badge/version-1.1.0-brightgreen)
+![Version](https://img.shields.io/badge/version-1.2.0-brightgreen)
 ![Samsung](https://img.shields.io/badge/Samsung-auto--popup-success)
 
 ---
 
-## 🆕 What's New in v1.1
+## ✨ Features
 
-- **💾 Persistent Storage** - Credentials survive reboots (stored in SPIFFS)
-- **🖥️ Admin Panel** - Web-based dashboard to view/manage captured data
+- **📱 Universal Compatibility** - Works with iPhone, Android, Samsung, Windows
+- **💾 Persistent Storage** - Credentials survive reboots (SPIFFS)
+- **🖥️ Admin Panel** - Beautiful dark-themed responsive dashboard
 - **🔌 REST API** - Full API for integration with external tools
 - **📊 Data Export** - Download logs in JSON or CSV format
 - **⚙️ Dynamic Config** - Change SSID and admin credentials without reflashing
 - **🔐 Authentication** - Protected admin area with HTTP Basic Auth
+- **🆘 Factory Reset** - Emergency reset without reflashing
 
 ---
 
-## ✅ What works
+## 🆕 What's New in v1.2
+
+- **🆘 Factory Reset** - Access `/factory-reset` if you get locked out
+- **📱 Responsive Design** - Admin panel works great on mobile
+- **🔧 Improved Auth Flow** - No more double login prompts
+- **🚪 Better Logout** - Clear instructions when changing passwords
+- **🐛 Bug Fixes** - Fixed credential save/load issues
+
+---
+
+## ✅ Device Compatibility
 
 | Device | Auto-popup? | Notes |
 |--------|-------------|-------|
@@ -53,12 +65,12 @@ git clone https://github.com/mathieucarbou/ESPAsyncWebServer
 #    Sketch > Include Library > Manage Libraries > Search "ArduinoJson"
 ```
 
-3. Open `EvilPortal_v1.1.ino` in Arduino IDE
+3. Open `src/main.cpp` in Arduino IDE (or copy to `.ino` file)
 
 4. Configure Arduino IDE:
    - Board: `ESP32S3 Dev Module`
    - USB CDC On Boot: `Enabled`
-   - Partition Scheme: `Default 4MB with spiffs` (or any scheme with SPIFFS)
+   - Partition Scheme: `Default 4MB with spiffs`
 
 5. Upload and you're done!
 
@@ -72,13 +84,15 @@ Access the admin panel by connecting to the portal WiFi and navigating to:
 http://4.3.2.1/admin
 ```
 
+> 💡 **Tip:** If on mobile with cellular data, use `http://portal.local/admin` instead to avoid routing issues.
+
 **Default credentials:**
 - Username: `admin`
 - Password: `admin`
 
 ⚠️ **Change these immediately in the Config section!**
 
-### Dashboard Features
+### Pages
 
 | Page | URL | Description |
 |------|-----|-------------|
@@ -86,14 +100,17 @@ http://4.3.2.1/admin
 | Logs | `/admin/logs` | Full table of captured credentials |
 | Config | `/admin/config` | Change SSID and admin credentials |
 | Export | `/admin/export` | Download data as JSON/CSV |
+| Logout | `/admin/logout` | End session |
 
-### Screenshots
+### Factory Reset
 
-The admin panel features a dark theme optimized for field use:
-- Real-time credential count
-- Uptime and memory monitoring
-- One-click data export
-- Auto-refreshing log view
+If you ever get locked out:
+
+```
+http://4.3.2.1/factory-reset
+```
+
+This resets credentials to `admin/admin` without reflashing.
 
 ---
 
@@ -101,12 +118,13 @@ The admin panel features a dark theme optimized for field use:
 
 Base URL: `http://4.3.2.1/api/v1`
 
-All API endpoints require HTTP Basic Authentication with admin credentials.
+All API endpoints require HTTP Basic Authentication.
 
 ### Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/ping` | Health check (no auth) |
 | GET | `/status` | System status and stats |
 | GET | `/logs` | List all credentials |
 | GET | `/logs?limit=5` | List last N credentials |
@@ -117,10 +135,14 @@ All API endpoints require HTTP Basic Authentication with admin credentials.
 | GET | `/export/json` | Download logs as JSON |
 | GET | `/export/csv` | Download logs as CSV |
 | POST | `/reboot` | Restart device |
+| GET | `/dashboard` | Combined status + logs (optimized) |
 
 ### Example Usage
 
 ```bash
+# Health check
+curl http://4.3.2.1/ping
+
 # Get status
 curl -u admin:admin http://4.3.2.1/api/v1/status
 
@@ -139,53 +161,11 @@ curl -u admin:admin -X POST -H "Content-Type: application/json" \
 curl -u admin:admin -X DELETE http://4.3.2.1/api/v1/logs
 ```
 
-### Response Examples
-
-**GET /api/v1/status**
-```json
-{
-  "version": "1.1.0",
-  "uptime": 3600,
-  "ssid": "Free_WiFi",
-  "ip": "4.3.2.1",
-  "credentials_count": 5,
-  "memory_free": 180000,
-  "spiffs_used": 12000,
-  "spiffs_total": 1500000,
-  "default_creds": false
-}
-```
-
-**GET /api/v1/logs**
-```json
-{
-  "count": 2,
-  "logs": [
-    {
-      "id": 1,
-      "timestamp": 1234567890,
-      "email": "victim@email.com",
-      "password": "secret123",
-      "ssid": "Free_WiFi",
-      "client_ip": "4.3.2.100"
-    },
-    {
-      "id": 2,
-      "timestamp": 1234567900,
-      "email": "another@email.com",
-      "password": "hunter2",
-      "ssid": "Free_WiFi",
-      "client_ip": "4.3.2.101"
-    }
-  ]
-}
-```
-
 ---
 
 ## 💾 Storage Details
 
-### SPIFFS File Structure
+### SPIFFS Structure
 
 ```
 /
@@ -197,7 +177,7 @@ curl -u admin:admin -X DELETE http://4.3.2.1/api/v1/logs
 
 - Maximum 100 credentials stored (FIFO - oldest deleted when full)
 - Config changes persist across reboots
-- Total SPIFFS size depends on partition scheme (~1.5MB typical)
+- Total SPIFFS size: ~1.5MB typical
 
 ---
 
@@ -205,86 +185,94 @@ curl -u admin:admin -X DELETE http://4.3.2.1/api/v1/logs
 
 ### Change Default Network Name
 
-Edit in the code before uploading:
+Edit in the code:
 ```cpp
 #define DEFAULT_SSID "Free_WiFi"
 ```
 
-Or change dynamically via Admin Panel → Config after deployment.
+Or change dynamically via Admin Panel → Config.
 
-### Change Portal Page Design
+### Portal Page Templates
 
-Edit the `portal_html` constant in the firmware. The HTML includes:
-- Responsive design
-- Modern styling
-- Form that captures email + password
-- Success message after submission
+Several templates are included in `/templates/`:
+
+| Template | Description |
+|----------|-------------|
+| `free_wifi.html` | Generic free WiFi |
+| `starbucks.html` | Coffee shop themed |
+| `hotel.html` | Hotel guest WiFi |
+| `airport.html` | Airport WiFi |
+| `google_signin.html` | Google-style login |
 
 ### LED Pins
 
-For non-Electronic Cats boards, adjust these pins:
+For non-Electronic Cats boards:
 ```cpp
 #define LED_ACCENT_PIN 4   // Blue
 #define LED_STATUS_PIN 5   // Green  
 #define LED_ALERT_PIN  6   // Red
 ```
 
-Set to `-1` to disable if your board doesn't have RGB LED.
+Set to `-1` to disable.
 
 ---
 
 ## 🔧 Troubleshooting
 
+### Can't Login After Changing Password
+
+1. Close **ALL** browser tabs
+2. Open a new tab
+3. Go to `/admin` and enter new credentials
+4. If still stuck, go to `/factory-reset`
+
 ### SPIFFS Mount Failed
 
-If you see `[!] SPIFFS mount failed`:
-1. Make sure you selected a partition scheme with SPIFFS
-2. Try: Tools → ESP32 Sketch Data Upload (to format SPIFFS)
-3. Or enable SPIFFS formatting on first boot (already enabled in code)
+1. Tools → Partition Scheme → `Default 4MB with spiffs`
+2. Tools → Erase All Flash Before Sketch Upload → `Enabled`
+3. Upload again
 
-### Serial Output Stops After Boot
+### Serial Output Stops
 
-This is expected when using IP 4.3.2.1 (Samsung compatibility). See `docs/KNOWN_ISSUES.md` for details. The portal works fine - you just can't see serial output.
-
-### Admin Panel Won't Load
-
-1. Make sure you're connected to the portal WiFi
-2. Use `http://` not `https://`
-3. Try `http://4.3.2.1/admin` directly
+Expected with IP 4.3.2.1 (Samsung compatibility). The portal works fine.
 
 ### ESP32 Core 3.x Errors
 
-Downgrade to ESP32 Arduino Core 2.0.x. Version 3.x has breaking changes.
+Downgrade to ESP32 Arduino Core 2.0.x.
+
+### Mobile Data Conflicts
+
+Use domain names instead of IP:
+- `http://portal.local/admin`
+- `http://setup.wifi/admin`
 
 ---
 
-## 📦 Templates
+## 📦 Project Structure
 
-| Template | File | Description |
-|----------|------|-------------|
-| Generic | `EvilPortal_v1.1.ino` | Clean "Free WiFi" design |
-| Starbucks | `templates/EvilPortal_Starbucks.ino` | Coffee shop themed (v1.0) |
-
-Want to contribute a template? PRs welcome!
+```
+esp32-captive-portal/
+├── src/
+│   └── main.cpp          # Main firmware
+├── templates/            # HTML portal templates
+├── docs/
+│   ├── BUILDING.md       # Build instructions
+│   └── KNOWN_ISSUES.md   # Known issues
+├── bin/                  # Pre-compiled binaries
+├── platformio.ini        # PlatformIO config
+├── partitions_evilportal.csv
+├── LICENSE
+└── README.md
+```
 
 ---
 
 ## 🔒 Security Notes
 
-1. **Change default credentials immediately** - The admin panel warns you if using defaults
-2. **Physical access required** - Admin panel only accessible when connected to portal
-3. **No encryption** - Data stored in plain text on SPIFFS (physical access = data access)
-4. **Rate limiting** - Basic protection against brute force (10 requests/second)
-
----
-
-## 🚀 Roadmap (v1.2+)
-
-- [ ] BLE communication with Flipper Zero / mobile app
-- [ ] Multiple HTML templates (switchable from admin)
-- [ ] Statistics dashboard with charts
-- [ ] Webhook notifications on capture
-- [ ] Stealth mode (hide admin panel)
+1. **Change default credentials immediately**
+2. **Physical access required** - Admin only accessible on portal WiFi
+3. **No encryption** - Data stored in plain text
+4. **Rate limiting** - Basic brute force protection
 
 ---
 
@@ -298,20 +286,18 @@ This tool is intended for:
 - Educational demonstrations
 - Research purposes
 
-Using this tool against networks without explicit permission is illegal. The authors are not responsible for misuse.
+Using this tool without permission is illegal. Authors are not responsible for misuse.
 
 ---
 
 ## 🙏 Credits
 
-- [justcallmekoko](https://github.com/justcallmekoko) — ESP32 Marauder inspiration
-- [bigbrodude6119](https://github.com/bigbrodude6119) — Evil Portal concepts
-- [Electronic Cats](https://electroniccats.com/) — WiFi Dev Board hardware
-- [CDFER](https://github.com/CDFER/Captive-Portal-ESP32) — Samsung IP research
-- [mathieucarbou](https://github.com/mathieucarbou) — Async libraries maintenance
+- [Electronic Cats](https://electroniccats.com/) — WiFi Dev Board
+- [mathieucarbou](https://github.com/mathieucarbou) — Async libraries
+- [CDFER](https://github.com/CDFER/Captive-Portal-ESP32) — Samsung research
 
 ---
 
 ## 📄 License
 
-MIT — Use it, modify it, share it. Just don't use it for evil (unauthorized testing).
+MIT — Use it, modify it, share it. Just don't be evil.

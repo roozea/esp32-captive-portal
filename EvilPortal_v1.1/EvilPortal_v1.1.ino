@@ -1,5 +1,5 @@
 // ============================================================================
-// ESP32-S3 Captive Portal - v1.2.0
+// ESP32-S3 Captive Portal - v1.1.0
 // ============================================================================
 // 
 // Standalone captive portal with persistent storage, admin panel, and REST API.
@@ -37,7 +37,7 @@
 // VERSION INFO
 // ============================================================================
 
-#define FIRMWARE_VERSION "1.2.0"
+#define FIRMWARE_VERSION "1.1.0"
 #define MAX_CREDENTIALS 100
 
 // ============================================================================
