@@ -4,25 +4,59 @@
 *.map
 build/
 
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
 # macOS
 .DS_Store
 ._*
+.Spotlight-V100
+.Trashes
 
 # Windows
 Thumbs.db
 desktop.ini
+ehthumbs.db
+
+# Linux
+*~
+.directory
 
 # IDE configs
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-workspace
+*.sublime-project
 
 # Compiled files
 *.o
 *.a
 *.so
+*.dylib
 
 # Backup files
 *~
 *.bak
+*.orig
+
+# Log files
+*.log
+
+# Credentials (never commit!)
+credentials.txt
+passwords.txt
+*.csv
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# ESP32 specific
+*.ino.bin
+*.ino.elf
+*.ino.map

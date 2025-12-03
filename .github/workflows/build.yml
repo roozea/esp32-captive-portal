@@ -7,6 +7,7 @@ on:
       - 'v*'
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -26,42 +27,98 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Build Standalone firmware
+      - name: Build Standalone Edition
         run: pio run -e standalone
 
-      - name: Build Flipper firmware
+      - name: Build Flipper Edition
         run: pio run -e flipper
 
-      - name: Prepare artifacts
+      - name: Prepare release artifacts
         run: |
           mkdir -p release
-          cp .pio/build/standalone/firmware.bin release/EvilPortal_Standalone.bin 2>/dev/null || cp .pio/build/standalone/*.bin release/ 2>/dev/null || true
-          cp .pio/build/flipper/firmware.bin release/EvilPortal_Flipper.bin 2>/dev/null || cp .pio/build/flipper/*.bin release/ 2>/dev/null || true
-          ls -la release/
+          # Copy and rename binaries for web flasher compatibility
+          cp .pio/build/standalone/firmware.bin release/evilportal-standalone.bin
+          cp .pio/build/flipper/firmware.bin release/evilportal-flipper.bin
+          # Also create versioned copies if this is a tag
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            cp release/evilportal-standalone.bin "release/evilportal-standalone-${VERSION}.bin"
+            cp release/evilportal-flipper.bin "release/evilportal-flipper-${VERSION}.bin"
+          fi
 
-      - name: Upload artifacts
+      - name: Upload Standalone artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-binaries
-          path: release/
+          name: evilportal-standalone
+          path: release/evilportal-standalone.bin
+
+      - name: Upload Flipper artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evilportal-flipper
+          path: release/evilportal-flipper.bin
 
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write
     
     steps:
-      - name: Download artifacts
+      - name: Download Standalone artifact
         uses: actions/download-artifact@v4
         with:
-          name: firmware-binaries
+          name: evilportal-standalone
           path: release/
+
+      - name: Download Flipper artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: evilportal-flipper
+          path: release/
+
+      - name: Prepare versioned files
+        run: |
+          VERSION="${{ github.ref_name }}"
+          cd release
+          cp evilportal-standalone.bin "evilportal-standalone-${VERSION}.bin"
+          cp evilportal-flipper.bin "evilportal-flipper-${VERSION}.bin"
+          ls -la
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: release/*
+          name: Evil Portal Studio ${{ github.ref_name }}
+          body: |
+            ## Evil Portal Studio ${{ github.ref_name }}
+            
+            ### 📦 Downloads
+            
+            | Edition | Description |
+            |---------|-------------|
+            | **evilportal-standalone.bin** | Standalone Edition - Independent operation |
+            | **evilportal-flipper.bin** | Flipper Edition - Flipper Zero integration |
+            
+            ### 🌐 Web Flasher
+            
+            Flash directly from your browser: **[Web Flasher](https://roozea.github.io/esp32-captive-portal/)**
+            
+            ### 📋 Installation
+            
+            1. Download the appropriate `.bin` file for your use case
+            2. Flash using the Web Flasher, esptool, or Arduino IDE
+            3. Connect to the "Free_WiFi" network
+            4. Access admin panel at `http://4.3.2.1/admin`
+            
+            Default credentials: `admin` / `admin`
+            
+            See [README](https://github.com/roozea/esp32-captive-portal#readme) for full documentation.
+          files: |
+            release/evilportal-standalone.bin
+            release/evilportal-flipper.bin
+            release/evilportal-standalone-${{ github.ref_name }}.bin
+            release/evilportal-flipper-${{ github.ref_name }}.bin
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

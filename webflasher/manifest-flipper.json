@@ -1,0 +1,18 @@
+{
+  "name": "Evil Portal Studio - Flipper Edition",
+  "version": "1.2.3",
+  "home_assistant_domain": "",
+  "funding_url": "",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        {
+          "path": "https://github.com/roozea/esp32-captive-portal/releases/latest/download/evilportal-flipper.bin",
+          "offset": 0
+        }
+      ]
+    }
+  ]
+}
