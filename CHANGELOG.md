@@ -5,6 +5,31 @@ All notable changes to Evil Portal Studio will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2024-12-03
+
+### Added
+- 🔄 **Dynamic SSID Change** - Change network name instantly without restart via `/api/v1/ssid`
+- 🎨 **Portal HTML Editor** - Edit captive portal HTML directly from web admin panel
+- 📝 **Template Management** - Save, load, and manage HTML templates in `/admin/templates`
+- 🔗 **Bidirectional Flipper Sync** - Web changes sync to Flipper Zero in real-time
+- 🆕 New REST API endpoints:
+  - `POST /api/v1/ssid` - Change SSID without restart
+  - `GET /api/v1/portal-html` - Get current portal HTML
+  - `POST /api/v1/portal-html` - Update portal HTML
+  - `DELETE /api/v1/portal-html` - Reset to default HTML
+  - `GET /api/v1/templates` - List saved templates
+  - `POST /api/v1/templates` - Save new template
+
+### Changed
+- Admin panel now includes Templates page with visual editor
+- Improved SPIFFS storage for custom HTML templates
+- Better integration between Web Admin and Flipper Zero control
+
+### Technical
+- Templates stored in `/templates/` directory on SPIFFS
+- Custom portal HTML stored as `/portal.html`
+- Real-time SSID updates without WiFi AP restart
+
 ## [1.2.3] - 2024-12-02
 
 ### Fixed

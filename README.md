@@ -2,7 +2,7 @@
 
 **The Ultimate Evil Portal Firmware for ESP32-S3** — Two powerful editions for every use case.
 
-![Version](https://img.shields.io/badge/version-1.2.3-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-ESP32--S3-orange)
 ![Samsung](https://img.shields.io/badge/Samsung-auto--popup-success)
@@ -108,6 +108,7 @@ Password: admin
 | Dashboard | `/admin` | Overview with stats and recent captures |
 | Logs | `/admin/logs` | Full table of captured credentials |
 | Config | `/admin/config` | Change SSID and admin credentials |
+| Templates | `/admin/templates` | Visual HTML template editor |
 | Export | `/admin/export` | Download data as JSON/CSV |
 | Logout | `/admin/logout` | End session |
 
@@ -135,6 +136,12 @@ Base URL: `http://4.3.2.1/api/v1`
 | DELETE | `/logs/{id}` | Delete specific credential |
 | GET | `/config` | Get current configuration |
 | POST | `/config` | Update configuration |
+| POST | `/ssid` | Change SSID without restart (v1.3+) |
+| GET | `/portal-html` | Get current portal HTML |
+| POST | `/portal-html` | Update portal HTML (v1.3+) |
+| DELETE | `/portal-html` | Reset portal to default HTML |
+| GET | `/templates` | List all saved templates |
+| POST | `/templates` | Save a new template |
 | GET | `/export/json` | Download logs as JSON |
 | GET | `/export/csv` | Download logs as CSV |
 | POST | `/reboot` | Restart device |
@@ -154,10 +161,34 @@ curl -u admin:admin http://4.3.2.1/api/v1/logs
 # Export as JSON
 curl -u admin:admin http://4.3.2.1/api/v1/export/json -o credentials.json
 
-# Change SSID
+# Change SSID (legacy - updates config)
 curl -u admin:admin -X POST -H "Content-Type: application/json" \
   -d '{"ssid":"Coffee Shop WiFi"}' \
   http://4.3.2.1/api/v1/config
+
+# Change SSID instantly without restart (v1.3+)
+curl -u admin:admin -X POST -H "Content-Type: application/json" \
+  -d '{"ssid":"New Network Name"}' \
+  http://4.3.2.1/api/v1/ssid
+
+# Get current portal HTML
+curl -u admin:admin http://4.3.2.1/api/v1/portal-html
+
+# Update portal HTML (v1.3+)
+curl -u admin:admin -X POST -H "Content-Type: application/json" \
+  -d '{"html":"<html><body><h1>Custom Portal</h1></body></html>"}' \
+  http://4.3.2.1/api/v1/portal-html
+
+# Reset portal to default HTML
+curl -u admin:admin -X DELETE http://4.3.2.1/api/v1/portal-html
+
+# List saved templates
+curl -u admin:admin http://4.3.2.1/api/v1/templates
+
+# Save a new template
+curl -u admin:admin -X POST -H "Content-Type: application/json" \
+  -d '{"name":"my_template","html":"<html>...</html>"}' \
+  http://4.3.2.1/api/v1/templates
 ```
 
 ---
@@ -390,12 +421,14 @@ Contributions are welcome! Please:
 
 See [CHANGELOG.md](CHANGELOG.md) for version history.
 
-### Latest: v1.2.3
+### Latest: v1.3.0
 
-- ✅ Fixed build workflow for GitHub Actions
-- ✅ Added forward declarations for SPIFFS functions
-- ✅ Updated library versions for PlatformIO compatibility
-- ✅ Both Standalone and Flipper editions now build correctly
+- 🆕 **Dynamic SSID Change** - Change network name without restart via `/api/v1/ssid`
+- 🆕 **Portal HTML Editor** - Edit captive portal HTML directly from web admin
+- 🆕 **Template Management** - Save and load HTML templates in `/admin/templates`
+- 🆕 **Bidirectional Flipper Sync** - Web changes sync to Flipper Zero in real-time
+- ✅ New REST API endpoints for SSID, portal-html, and templates
+- ✅ Visual template editor with live preview
 
 ---
 
