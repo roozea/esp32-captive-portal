@@ -2,92 +2,90 @@
 
 All notable changes to Evil Portal Studio will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.3.0] - 2024-12-02
 
-## [1.2.3] - 2024-12-02
+### 🎉 Major New Features
 
-### Fixed
-- GitHub Actions workflow now uses correct PlatformIO environments (`standalone`, `flipper`)
-- Added forward declarations for SPIFFS functions in Flipper edition
-- Updated library versions for PlatformIO compatibility:
-  - AsyncTCP: ^3.2.14
-  - ESPAsyncWebServer: ^3.3.23
-  - ArduinoJson: ^7.2.1
-- Removed missing `rename_firmware.py` script reference
+#### Dynamic SSID Change (No Restart!)
+- **NEW** `POST /api/v1/ssid` endpoint for instant SSID changes
+- WiFi network name updates immediately without device restart
+- Changes persist to SPIFFS automatically
 
-### Changed
-- Both Standalone and Flipper editions now build correctly in CI/CD
-- Web Flasher updated with edition selector (Standalone vs Flipper)
-- README completely rewritten to document both editions
+#### HTML Template Editor
+- **NEW** `/admin/templates` page with full HTML editor
+- Live preview of templates before applying
+- Syntax highlighting and responsive design
 
-## [1.2.2] - 2024-12-01
+#### Template Management System
+- **NEW** `POST /api/v1/templates` - Save templates to SPIFFS
+- **NEW** `GET /api/v1/templates` - List all saved templates
+- **NEW** `GET /api/v1/templates/{name}` - Load specific template
+- **NEW** `DELETE /api/v1/portal-html` - Reset to default template
 
-### Fixed
-- Build issues with partition file paths
+#### Bidirectional Flipper Sync
+- Web changes notify Flipper via UART: `ssid_changed:`, `html_changed`
+- Unified state management between Web and Flipper sources
+- Source tracking: know if change came from Web, Flipper, or default
 
-## [1.2.1] - 2024-12-01
+### 🔧 Improvements
 
-### Fixed
-- Release workflow improvements
+- **Config Page**: SSID field now shows "LIVE" badge, instant apply button
+- **Dashboard**: Shows HTML source (Default/Web Admin/Flipper Zero)
+- **Dashboard**: Flipper connection status with timeout detection
+- **API**: `/api/v1/status` includes `html_source` and `flipper_connected`
+- **API**: `/api/v1/config` includes `active_ssid` separate from stored `ssid`
 
-## [1.2.0] - 2024-12-01
+### 🏗️ Architecture Changes
 
-### Added
-- 🆘 **Factory Reset** - Access `/factory-reset` if you get locked out
-- 📱 **Responsive Design** - Admin panel works great on mobile
-- 🌐 **Web Flasher** - Flash from browser using ESP Web Tools, no Arduino IDE needed!
-- 🟠 **Flipper Edition** - New firmware variant optimized for Flipper Zero integration
+- Introduced `activeSSID` and `activeHtml` as unified runtime state
+- Added `ChangeSource` enum to track origin of changes
+- Flipper timeout detection (30 seconds without activity)
+- Templates stored in `/templates/` directory on SPIFFS
+- Active HTML stored in `/active_html.html` for persistence
 
-### Fixed
-- 🔧 **Improved Auth Flow** - No more double login prompts
-- 🚪 **Better Logout** - Clear instructions when changing passwords
-- 🐛 **Credential Save/Load Issues** - Fixed SPIFFS persistence bugs
+### 📡 New Flipper Notifications
 
-### Changed
-- Admin panel redesigned with dark theme
-- Improved mobile responsiveness
-- Better error handling throughout
+When changes are made from the web admin:
+- `ssid_changed: NewSSID` - Sent when SSID changes from web
+- `html_changed` - Sent when HTML template changes from web
 
-## [1.1.0] - 2024-11-30
+### 🛠️ Technical Details
 
-### Added
-- 💾 **Persistent Storage** - Credentials survive reboots (SPIFFS)
-- 🖥️ **Admin Panel** - Beautiful dark-themed responsive dashboard
-- 🔌 **REST API** - Full API with 11 endpoints for integration
-- 📊 **Data Export** - Download logs in JSON or CSV format
-- ⚙️ **Dynamic Config** - Change SSID and admin credentials without reflashing
-- 🔐 **Authentication** - Protected admin area with HTTP Basic Auth
-
-### Changed
-- Migrated from simple serial output to full web interface
-- Improved credential capture reliability
-- Better captive portal detection across devices
-
-## [1.0.0] - 2024-11-28
-
-### Added
-- Initial release
-- 📱 **Universal Compatibility** - Works with iPhone, Android, Samsung, Windows
-- Samsung auto-popup support using IP 4.3.2.1
-- LED status indicators (Electronic Cats WiFi Dev Board)
-- Serial output for credential capture
-- Basic captive portal functionality
-
-### Known Issues
-- USB-CDC breaks after `WiFi.softAPConfig()` on ESP32-S3 (documented in KNOWN_ISSUES.md)
-- Requires ESP32 Arduino Core 2.0.x (3.x not compatible)
+- Maximum HTML size: 20KB (unchanged)
+- Maximum templates: 10 (soft limit based on SPIFFS space)
+- Flipper timeout: 30 seconds
+- All changes persist across reboots
 
 ---
 
-## Version Naming
+## [1.2.3] - Previous Release
 
-- **Standalone Edition**: Independent operation, no external devices
-- **Flipper Edition**: Optimized for Flipper Zero integration
+- Web flasher support
+- ESP32 Core 3.x compatibility
+- Bug fixes for SPIFFS mounting
 
-## Links
+## [1.2.0] - Previous Release
 
-- [GitHub Repository](https://github.com/roozea/esp32-captive-portal)
-- [Web Flasher](https://roozea.github.io/esp32-captive-portal/)
-- [Releases](https://github.com/roozea/esp32-captive-portal/releases)
-- [Issues](https://github.com/roozea/esp32-captive-portal/issues)
+- Initial Flipper Zero Edition
+- SPIFFS credential storage
+- Web admin panel
+- REST API with 11 endpoints
+- Samsung auto-popup support (IP 4.3.2.1)
+
+---
+
+## Migration Guide: v1.2.x → v1.3.0
+
+### Breaking Changes
+None! v1.3.0 is fully backward compatible.
+
+### New Config File Format
+The `/config.json` format is unchanged, but a new file `/active_html.html` may be created when custom HTML is applied from web.
+
+### Flipper Compatibility
+Existing Flipper commands (`setap=`, `sethtml=`, `start`, `stop`) continue to work exactly as before. New notification messages are informational only.
+
+### Recommended Actions
+1. Update firmware via Web Flasher or PlatformIO
+2. Factory reset is NOT required
+3. Existing credentials and config are preserved
