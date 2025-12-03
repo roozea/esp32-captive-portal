@@ -100,6 +100,15 @@ bool receivingHtml = false;
 int htmlLineCount = 0;
 
 // ============================================================================
+// FORWARD DECLARATIONS
+// ============================================================================
+
+void loadConfig();
+void saveConfig();
+void loadCredentialCount();
+bool checkAuth(AsyncWebServerRequest *request);
+
+// ============================================================================
 // HTML TEMPLATES
 // ============================================================================
 
