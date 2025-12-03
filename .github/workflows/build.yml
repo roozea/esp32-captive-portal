@@ -1,0 +1,214 @@
+name: Build Firmware
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        edition: [standalone, flipper]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Build ${{ matrix.edition }} edition
+        run: |
+          pio run -e ${{ matrix.edition }}
+
+      - name: Prepare binary
+        run: |
+          mkdir -p bin
+          cp .pio/build/${{ matrix.edition }}/firmware.bin bin/EvilPortal_${{ matrix.edition }}.bin
+          echo "Built EvilPortal_${{ matrix.edition }}.bin"
+          ls -la bin/
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.edition }}
+          path: bin/EvilPortal_${{ matrix.edition }}.bin
+
+  # Combine artifacts and create manifests for web flasher
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download standalone artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-standalone
+          path: bin/
+          
+      - name: Download flipper artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-flipper
+          path: bin/
+          
+      - name: Create manifests for ESP Web Tools
+        run: |
+          # Get version from tag or use 'dev'
+          VERSION="${GITHUB_REF_NAME:-dev}"
+          
+          # Manifest for Standalone edition
+          cat > bin/manifest_standalone.json << EOF
+          {
+            "name": "Evil Portal Standalone",
+            "version": "${VERSION}",
+            "builds": [
+              {
+                "chipFamily": "ESP32-S3",
+                "parts": [
+                  { "path": "EvilPortal_standalone.bin", "offset": 0 }
+                ]
+              }
+            ]
+          }
+          EOF
+          
+          # Manifest for Flipper edition
+          cat > bin/manifest_flipper.json << EOF
+          {
+            "name": "Evil Portal Flipper Edition",
+            "version": "${VERSION}",
+            "builds": [
+              {
+                "chipFamily": "ESP32-S3",
+                "parts": [
+                  { "path": "EvilPortal_flipper.bin", "offset": 0 }
+                ]
+              }
+            ]
+          }
+          EOF
+          
+          echo "=== Build artifacts ==="
+          ls -la bin/
+
+      - name: Upload combined package
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-all
+          path: bin/
+
+  # Deploy to GitHub Pages (for web flasher)
+  deploy-pages:
+    needs: package
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download firmware package
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-all
+          path: bin/
+          
+      - name: Prepare Pages content
+        run: |
+          mkdir -p public
+          
+          # Copy firmware files
+          cp bin/*.bin public/
+          cp bin/*.json public/
+          
+          # Copy web flasher if exists, or create basic one
+          if [ -f "web/index.html" ]; then
+            cp web/* public/
+          elif [ -f "index.html" ]; then
+            cp index.html public/
+          fi
+          
+          echo "=== Pages content ==="
+          ls -la public/
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Create GitHub Release when tag is pushed
+  release:
+    needs: package
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Download firmware package
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-all
+          path: bin/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bin/EvilPortal_standalone.bin
+            bin/EvilPortal_flipper.bin
+            bin/manifest_standalone.json
+            bin/manifest_flipper.json
+          generate_release_notes: true
+          body: |
+            ## 📦 Firmware Downloads
+            
+            | Edition | Description |
+            |---------|-------------|
+            | `EvilPortal_standalone.bin` | Standalone - No Flipper needed |
+            | `EvilPortal_flipper.bin` | Flipper Zero integration + Standalone |
+            
+            ## 🌐 Web Flasher
+            
+            Flash directly from browser: https://${{ github.repository_owner }}.github.io/esp32-captive-portal/
+            
+            ## 📋 What's New
+            
+            See below for auto-generated release notes.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

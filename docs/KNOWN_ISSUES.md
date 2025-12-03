@@ -1,210 +1,280 @@
 # Known Issues & Workarounds
 
-## Version 1.2 Specific Issues
+## 1. ESP32 Arduino Core Version
 
-### Can't Login After Changing Password
+### ✅ Now Compatible with Core 3.x!
 
-**Problem:** After changing admin credentials, can't login with new or old password.
+As of version 1.2.0, the firmware is fully compatible with ESP32 Arduino Core 3.x (tested with 3.3.4).
 
-**Solution:**
-1. Close **ALL** browser tabs completely
-2. Open a new tab
-3. Go to `http://4.3.2.1/admin`
-4. Enter your NEW credentials
+**Recommended Setup:**
+- ESP32 Core: 3.3.4 or newer
+- AsyncTCP: mathieucarbou fork (required for Core 3.x)
+- ESPAsyncWebServer: mathieucarbou fork
 
-**If still locked out:** Go to `http://4.3.2.1/factory-reset` to reset to `admin/admin`.
-
-### Mobile Data Conflicts
-
-**Problem:** On mobile, going to `4.3.2.1` uses cellular data instead of WiFi.
-
-**Solution:** Use domain names instead of IP:
-- `http://portal.local/admin`
-- `http://setup.wifi/admin`
-- `http://login.portal/admin`
-
-Any domain works - the ESP32 DNS redirects everything to itself.
-
----
-
-## Version 1.1 Specific Issues
-
-### SPIFFS Mount Failure on First Boot
-
-**Problem:** First boot after flashing may show `[!] SPIFFS mount failed`.
-
-**Solution:** This is normal on first flash. The firmware automatically formats SPIFFS. If the problem persists:
-
-1. Tools → Partition Scheme → `Default 4MB with spiffs`
-2. Tools → Erase All Flash Before Sketch Upload → `Enabled`
-3. Upload again
-
-### Admin Panel Shows "No credentials captured" After Reboot
-
-**Problem:** Previously captured credentials don't appear after device restart.
-
-**Possible causes:**
-1. SPIFFS wasn't properly initialized
-2. Flash corruption
-3. Wrong partition scheme selected
-
-**Solution:**
-1. Verify partition scheme has SPIFFS: Tools > Partition Scheme > "Default 4MB with spiffs"
-2. Check serial output for SPIFFS errors on boot
-3. Try reflashing with "Erase All Flash Before Sketch Upload" enabled
-
-### API Returns 401 Unauthorized
-
-**Problem:** API calls return authentication errors even with correct credentials.
-
-**Solution:**
-1. Use HTTP Basic Auth header, not form data
-2. Example: `curl -u admin:admin http://4.3.2.1/api/v1/status`
-3. In browser, you'll get a login popup - enter credentials there
-4. Check if you changed the admin credentials and forgot them
-
-**Recovery if locked out:** Reflash the firmware to reset to defaults.
-
-### JSON Export Contains Escaped Characters
-
-**Problem:** Exported JSON shows `\n` or `\"` in fields.
-
-**Explanation:** This is correct behavior. Special characters are escaped per JSON specification. Any JSON parser will handle this correctly.
-
-### Memory Issues with Many Credentials
-
-**Problem:** Device becomes slow or crashes with many stored credentials.
-
-**Solution:** The firmware limits storage to 100 credentials (FIFO). If you're experiencing issues:
-1. Export and clear logs regularly
-2. Check free memory in dashboard
-3. Reboot device periodically during long engagements
-
----
-
-## General Issues (All Versions)
-
-### 1. ESP32 Arduino Core Version Compatibility
-
-**Problem:** ESP32 Arduino Core version 3.x introduced breaking changes.
-
-**Error Example:**
-```
-error: 'struct ip_event_ap_staipassigned_t' has no member named 'ip'
-```
-
-**Solution:** Use ESP32 Arduino Core version **2.0.x** (specifically 2.0.17 is well-tested).
-
-In Arduino IDE:
-1. Tools > Board > Boards Manager
-2. Find "esp32 by Espressif Systems"
-3. Select version 2.0.17
-4. Click Install
-
----
-
-### 2. USB-CDC Breaks After WiFi.softAPConfig()
-
-**Problem:** On ESP32-S3 with native USB-CDC, calling `WiFi.softAPConfig()` with any custom IP causes serial to die.
-
-**Symptoms:**
-- Serial output stops after WiFi configuration
-- WiFi AP works correctly
-- LED indicators work correctly
-- Device functions normally except for serial
-
-**Affected Hardware:**
-- ESP32-S3 boards with native USB
-- Electronic Cats WiFi Dev Board
-- ESP32-S3-DevKitC boards
-
-**Why We Accept This:** The IP 4.3.2.1 is necessary for Samsung auto-popup. Since credentials are now stored in SPIFFS and viewable via admin panel, serial output isn't critical for operation.
-
-**Workarounds:**
-1. **Recommended:** Use admin panel at `http://4.3.2.1/admin` to view credentials
-2. **Alternative:** Use external UART adapter on GPIO pins
-3. **Alternative:** Use default IP 192.168.4.1 (breaks Samsung auto-popup)
-
----
-
-### 3. Samsung Captive Portal Detection
-
-**Problem:** Samsung phones require "public-looking" IP addresses for automatic popup.
-
-**Solution:** Use IP `4.3.2.1` (already configured in v1.1).
-
-This IP:
-- Triggers Samsung's captive portal detection
-- Works with all other devices too
-- Is not routable on the internet (safe to use locally)
-
----
-
-### 4. Multiple ESP32 Packages Installed
-
-**Problem:** Having both "Arduino ESP32 Boards" and "esp32 by Espressif Systems" causes conflicts.
-
-**Solution:** Only keep "esp32 by Espressif Systems" installed.
-
----
-
-### 5. AsyncTCP Library Conflicts
-
-**Problem:** Multiple versions of AsyncTCP exist, some incompatible.
-
-**Solution:** Use the mathieucarbou fork:
+### Library Installation
 
 ```bash
 cd ~/Documents/Arduino/libraries
-rm -rf AsyncTCP ESPAsyncWebServer
+rm -rf AsyncTCP ESPAsyncWebServer  # Remove old versions
 git clone https://github.com/mathieucarbou/AsyncTCP
 git clone https://github.com/mathieucarbou/ESPAsyncWebServer
 ```
 
+### Still using Core 2.x?
+
+It still works! Both Core 2.x and 3.x are supported.
+
 ---
 
-### 6. ArduinoJson Version Issues (v1.1+)
+## 2. USB-CDC Breaks After WiFi.softAPConfig() (ESP32-S3)
 
-**Problem:** Very old versions of ArduinoJson use different API.
+### Problem
 
-**Solution:** Use ArduinoJson v7.x (latest). Install via Library Manager.
+On ESP32-S3 boards using native USB-CDC, calling `WiFi.softAPConfig()` with a custom IP address (like 4.3.2.1) can break serial communication.
 
-The v1.1 firmware uses `JsonDocument` which requires ArduinoJson 7.x. If you have 6.x, the code will still work but you may see deprecation warnings.
+### Symptoms
+
+- Serial output stops after WiFi initialization
+- The WiFi AP works correctly
+- Need to reflash to recover
+
+### Affected Hardware
+
+- ESP32-S3 boards with native USB (no external UART chip)
+- Electronic Cats WiFi Dev Board
+- ESP32-S3-DevKitC boards
+- Any ESP32-S3 using "USB CDC On Boot: Enabled"
+
+### Status
+
+We reported this to Espressif. It appears to be **fixed in Core 3.3.4**.
+
+If you still experience issues:
+1. Update to ESP32 Core 3.3.4 or newer
+2. Use an external UART adapter for debugging
+
+### Workaround for Flipper Edition
+
+The Flipper Edition uses GPIO 43/44 for UART communication with Flipper, which is unaffected by this bug. Debug output goes to USB, Flipper communication goes to hardware UART.
+
+---
+
+## 3. Samsung Captive Portal Detection
+
+### Background
+
+Samsung phones have stricter captive portal detection than other devices. They specifically check if the gateway IP appears to be a "public" IP address.
+
+### Solution
+
+We use IP address `4.3.2.1` which:
+- Triggers Samsung's captive portal detection
+- Is unassigned/reserved (safe for local use)
+- Works with all other devices too
+
+### Verification
+
+After flashing, check Serial output:
+```
+[+] IP:   4.3.2.1
+```
+
+If it shows `192.168.4.1`, the configuration failed.
+
+---
+
+## 4. Flipper Zero Communication Issues
+
+### Problem: Flipper sends "reset" command
+
+The Flipper expects specific responses in exact format:
+- `ap set` (not "AP Set" or "ap_set")
+- `html set` (not "HTML Set")
+- `all set` (not "All Set")
+
+If responses don't match exactly, Flipper sends "reset" after ~3 seconds.
+
+### Solution
+
+The Flipper Edition firmware uses:
+1. Exact response strings
+2. `flush()` after each response
+3. Small delays for timing
+
+### Verification
+
+Watch Serial Monitor for:
+```
+[→FLIP] ap set
+[→FLIP] html set
+[→FLIP] all set
+```
+
+If you see these but Flipper still resets, increase the delay in `sendToFlipper()`:
+```cpp
+void sendToFlipper(const char* message) {
+    FlipperSerial.println(message);
+    FlipperSerial.flush();
+    delay(20);  // Try 20ms instead of 10ms
+}
+```
+
+---
+
+## 5. SPIFFS Mounting Failures
+
+### Symptoms
+
+- "SPIFFS not available" in Serial output
+- Credentials don't persist after reboot
+- Config resets to defaults
+
+### Solution
+
+1. **Check Partition Scheme:**
+   - Tools > Partition Scheme > "Default 4MB with spiffs"
+
+2. **Format SPIFFS:**
+   The firmware auto-formats on first boot, but you can force it:
+   - Tools > ESP32 Sketch Data Upload (if available)
+   - Or access `/factory-reset` endpoint
+
+3. **Check Flash Size:**
+   - Ensure your board actually has 4MB flash
+   - Some cheap boards have only 2MB
+
+---
+
+## 6. Admin Panel Login Issues
+
+### Can't Login After Password Change
+
+Browser caches Basic Auth credentials. Solutions:
+
+1. **Clear browser data:**
+   - Close ALL tabs to the portal
+   - Clear site data for 4.3.2.1
+   - Open new incognito/private window
+
+2. **Use Factory Reset:**
+   ```
+   http://4.3.2.1/factory-reset
+   ```
+   Resets to admin/admin without needing login.
+
+### Double Login Prompt
+
+Fixed in v1.2.0. If you experience this:
+1. Clear browser cache
+2. Use incognito mode
+3. Try a different browser
+
+---
+
+## 7. Multiple ESP32 Board Packages
+
+### Problem
+
+Having both "Arduino ESP32 Boards" and "esp32 by Espressif Systems" causes compilation errors.
+
+### Solution
+
+Keep only ONE package installed:
+
+1. Tools > Board > Boards Manager
+2. Search "esp32"
+3. Uninstall "Arduino ESP32 Boards" if present
+4. Keep only "esp32 by Espressif Systems"
+
+---
+
+## 8. LED Not Working
+
+### Electronic Cats Board
+
+LEDs are active LOW on this board. The firmware handles this:
+```cpp
+digitalWrite(LED_PIN, LOW);  // LED ON
+digitalWrite(LED_PIN, HIGH); // LED OFF
+```
+
+### Custom Board
+
+Update the pin definitions at the top of the sketch:
+```cpp
+#define LED_ACCENT_PIN 4   // Your blue LED pin (-1 to disable)
+#define LED_STATUS_PIN 5   // Your green LED pin
+#define LED_ALERT_PIN  6   // Your red LED pin
+```
+
+If your LEDs are active HIGH, modify `setLED()`:
+```cpp
+void setLED(bool accent, bool status, bool alert) {
+    if (LED_ACCENT_PIN >= 0) digitalWrite(LED_ACCENT_PIN, accent ? HIGH : LOW);
+    // ... etc
+}
+```
+
+---
+
+## 9. Captive Portal Not Appearing
+
+### Checklist
+
+1. **Correct SSID?** Check Serial output for actual network name
+2. **Device connected?** Make sure device is connected to the portal WiFi
+3. **IP correct?** Should be 4.3.2.1
+4. **DNS working?** Try accessing any URL like http://test.com
+5. **Browser cache?** Try different browser or incognito mode
+
+### Manual Access
+
+If auto-popup doesn't work, manually browse to:
+- http://4.3.2.1
+- http://captive.apple.com (iOS)
+- http://connectivitycheck.gstatic.com (Android)
+
+---
+
+## 10. Credentials Not Saving
+
+### Check
+
+1. SPIFFS available? (See issue #5)
+2. Disk space? Check Serial output for SPIFFS usage
+3. Max credentials reached? (100 limit, FIFO after that)
+
+### Force Save
+
+Credentials are auto-saved. If issues persist:
+1. Access `/factory-reset`
+2. Reconfigure settings
+3. Test capture again
 
 ---
 
 ## Reporting New Issues
 
-Found something not listed here? Please open an issue with:
+Found something not listed here? Open an issue with:
 
-1. Firmware version (check serial output or `/api/v1/status`)
-2. Your board model
-3. ESP32 Core version
-4. ArduinoJson version
-5. Arduino IDE version
-6. The error message or unexpected behavior
-7. Steps to reproduce
+1. **Board model** (exact name/link)
+2. **ESP32 Core version** (from Boards Manager)
+3. **Arduino IDE version**
+4. **Firmware version** (Standalone or Flipper, version number)
+5. **Serial output** (copy the relevant lines)
+6. **Steps to reproduce**
 
 The more details, the faster we can help!
 
 ---
 
-## FAQ
+## Quick Reference
 
-**Q: I'm locked out! How do I reset credentials?**
-A: Go to `http://4.3.2.1/factory-reset` - no authentication needed. This resets to `admin/admin`.
-
-**Q: Can I use this without the Electronic Cats board?**
-A: Yes! Any ESP32-S3 works. Just adjust the LED pin definitions or set them to -1.
-
-**Q: Why not use ESP32 (non-S3)?**
-A: You can! The USB-CDC issue doesn't affect original ESP32 since it uses external UART. However, the S3 has more RAM which helps with the web server.
-
-**Q: Can I increase the 100 credential limit?**
-A: Yes, change `MAX_CREDENTIALS` in the code. Be mindful of SPIFFS space - each credential uses ~200-300 bytes.
-
-**Q: How do I completely reset the device?**
-A: Option 1: Go to `/factory-reset`. Option 2: Flash with "Erase All Flash Before Sketch Upload" enabled.
-
-**Q: The timestamps show 1970 dates. Why?**
-A: Without internet access, the ESP32 has no way to know the real time. Timestamps are relative to boot time. Consider the sequence/ID for ordering.
+| Problem | Quick Fix |
+|---------|-----------|
+| Can't login | `http://4.3.2.1/factory-reset` |
+| SPIFFS error | Check partition scheme |
+| Samsung no popup | Verify IP is 4.3.2.1 |
+| Flipper reset | Check response timing |
+| Serial stops | Update to Core 3.3.4 |
+| LED not working | Check pin definitions |
